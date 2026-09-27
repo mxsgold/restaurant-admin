@@ -332,7 +332,7 @@ export default function AdminPage() {
   }
 
   if (!sessionReady) {
-    return <main className="center-screen"><div className="loader">NOIR</div></main>;
+    return <main className="center-screen"><div className="loader">NOEL BABA RESTORAN</div></main>;
   }
 
   if (!userEmail || !isAdmin) {
@@ -342,7 +342,7 @@ export default function AdminPage() {
         <div className="auth-glow glow-two" />
         <section className="login-card">
           <div className="brand-mark">N</div>
-          <p className="eyebrow">NOIR / ADMIN</p>
+          <p className="eyebrow">NOEL BABA RESTORAN / ADMIN</p>
           <h1>Welcome back.</h1>
           <p className="muted">Управляй меню ресторана из одного места.</p>
 
@@ -369,7 +369,7 @@ export default function AdminPage() {
     <main className="dashboard">
       <header className="topbar">
         <div>
-          <div className="brand-line"><span className="brand-mini">N</span><span>NOIR</span></div>
+          <div className="brand-line"><span className="brand-mini">N</span><span>NOEL BABA RESTORAN</span></div>
           <p className="muted small">Restaurant control center</p>
         </div>
         <div className="top-actions">
@@ -471,7 +471,7 @@ export default function AdminPage() {
                   {imageUrl(dish.image_path) ? (
                     <img src={imageUrl(dish.image_path)!} alt={dish.name} />
                   ) : (
-                    <div className="no-photo">NOIR</div>
+                    <div className="no-photo">NOEL BABA RESTORAN</div>
                   )}
                   <div className="dish-info">
                     <div className="dish-title-line"><strong>{dish.name}</strong><span>₼{Number(dish.price).toFixed(2)}</span></div>
