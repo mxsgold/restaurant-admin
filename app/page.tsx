@@ -1,6 +1,6 @@
 "use client";
 
-import { ChangeEvent, FormEvent, useEffect, useMemo, useState } from "react";
+import { ChangeEvent, FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "../lib/supabase";
 
 type Dish = {
@@ -42,6 +42,13 @@ export default function AdminPage() {
   });
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState("");
+  const [cropOpen, setCropOpen] = useState(false);
+  const [cropImage, setCropImage] = useState<HTMLImageElement | null>(null);
+  const [cropZoom, setCropZoom] = useState(1);
+  const [cropOffset, setCropOffset] = useState({ x: 0, y: 0 });
+  const [draggingCrop, setDraggingCrop] = useState(false);
+  const cropCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const cropDragRef = useRef({ x: 0, y: 0 });
 
   useEffect(() => {
     let mounted = true;
@@ -113,9 +120,118 @@ export default function AdminPage() {
 
   function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
     const selected = event.target.files?.[0] ?? null;
-    setFile(selected);
+    if (!selected) return;
+
+    const url = URL.createObjectURL(selected);
+    const image = new Image();
+    image.onload = () => {
+      URL.revokeObjectURL(url);
+      setFile(selected);
+      setCropImage(image);
+      setCropZoom(1);
+      setCropOffset({ x: 0, y: 0 });
+      setCropOpen(true);
+    };
+    image.src = url;
+  }
+
+  function drawCrop() {
+    const canvas = cropCanvasRef.current;
+    if (!canvas || !cropImage) return;
+
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const width = 800;
+    const height = 600;
+    canvas.width = width;
+    canvas.height = height;
+
+    const baseScale = Math.max(width / cropImage.naturalWidth, height / cropImage.naturalHeight);
+    const scale = baseScale * cropZoom;
+    const drawWidth = cropImage.naturalWidth * scale;
+    const drawHeight = cropImage.naturalHeight * scale;
+    const x = (width - drawWidth) / 2 + cropOffset.x;
+    const y = (height - drawHeight) / 2 + cropOffset.y;
+
+    ctx.clearRect(0, 0, width, height);
+    ctx.fillStyle = "#0a0a09";
+    ctx.fillRect(0, 0, width, height);
+    ctx.drawImage(cropImage, x, y, drawWidth, drawHeight);
+  }
+
+  useEffect(() => {
+    if (cropOpen) drawCrop();
+  }, [cropOpen, cropImage, cropZoom, cropOffset]);
+
+  function startCropDrag(clientX: number, clientY: number) {
+    cropDragRef.current = { x: clientX, y: clientY };
+    setDraggingCrop(true);
+  }
+
+  function moveCropDrag(clientX: number, clientY: number) {
+    if (!draggingCrop) return;
+    const canvas = cropCanvasRef.current;
+    if (!canvas) return;
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    const dx = (clientX - cropDragRef.current.x) * scaleX;
+    const dy = (clientY - cropDragRef.current.y) * scaleY;
+    cropDragRef.current = { x: clientX, y: clientY };
+    setCropOffset((current) => ({ x: current.x + dx, y: current.y + dy }));
+  }
+
+  function endCropDrag() {
+    setDraggingCrop(false);
+  }
+
+  function cropToFile(): Promise<File | null> {
+    return new Promise((resolve) => {
+      if (!cropImage) return resolve(null);
+
+      const canvas = document.createElement("canvas");
+      canvas.width = 1200;
+      canvas.height = 900;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return resolve(null);
+
+      const baseScale = Math.max(800 / cropImage.naturalWidth, 600 / cropImage.naturalHeight);
+      const scale = baseScale * cropZoom;
+      const x = (800 - cropImage.naturalWidth * scale) / 2 + cropOffset.x;
+      const y = (600 - cropImage.naturalHeight * scale) / 2 + cropOffset.y;
+
+      ctx.fillStyle = "#0a0a09";
+      ctx.fillRect(0, 0, 1200, 900);
+      ctx.drawImage(
+        cropImage,
+        x * 1.5,
+        y * 1.5,
+        cropImage.naturalWidth * scale * 1.5,
+        cropImage.naturalHeight * scale * 1.5
+      );
+
+      canvas.toBlob((blob) => {
+        resolve(blob ? new File([blob], "dish-cropped.jpg", { type: "image/jpeg" }) : null);
+      }, "image/jpeg", 0.9);
+    });
+  }
+
+  async function applyCrop() {
+    const cropped = await cropToFile();
+    if (!cropped) return;
+
+    setFile(cropped);
     if (preview) URL.revokeObjectURL(preview);
-    setPreview(selected ? URL.createObjectURL(selected) : "");
+    setPreview(URL.createObjectURL(cropped));
+    setCropOpen(false);
+    setCropImage(null);
+  }
+
+  function cancelCrop() {
+    setCropOpen(false);
+    setCropImage(null);
+    setFile(null);
   }
 
   async function handleCreate(event: FormEvent) {
