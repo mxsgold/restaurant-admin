@@ -488,6 +488,61 @@ export default function AdminPage() {
           )}
         </section>
       </div>
+
+      {cropOpen && cropImage && (
+        <div className="crop-backdrop" onClick={(event) => {
+          if (event.target === event.currentTarget) cancelCrop();
+        }}>
+          <section className="crop-modal" role="dialog" aria-modal="true" aria-label="Edit dish photo">
+            <div className="crop-head">
+              <div>
+                <p className="eyebrow">PHOTO EDITOR</p>
+                <h2>Crop your photo</h2>
+              </div>
+              <button type="button" className="modal-x" onClick={cancelCrop} aria-label="Close">×</button>
+            </div>
+
+            <p className="crop-help">
+              Перетащи фото, чтобы выбрать нужную область. Используй ползунок для увеличения.
+            </p>
+
+            <div
+              className="crop-stage"
+              onPointerDown={(event) => {
+                event.currentTarget.setPointerCapture(event.pointerId);
+                startCropDrag(event.clientX, event.clientY);
+              }}
+              onPointerMove={(event) => moveCropDrag(event.clientX, event.clientY)}
+              onPointerUp={endCropDrag}
+              onPointerCancel={endCropDrag}
+              onPointerLeave={() => {
+                if (draggingCrop) endCropDrag();
+              }}
+            >
+              <canvas ref={cropCanvasRef} />
+              <div className="crop-frame" />
+            </div>
+
+            <div className="crop-controls">
+              <span>Zoom</span>
+              <input
+                type="range"
+                min="1"
+                max="3"
+                step="0.01"
+                value={cropZoom}
+                onChange={(event) => setCropZoom(Number(event.target.value))}
+              />
+              <strong>{cropZoom.toFixed(1)}×</strong>
+            </div>
+
+            <div className="crop-actions">
+              <button type="button" className="ghost-btn" onClick={cancelCrop}>Cancel</button>
+              <button type="button" className="primary-btn" onClick={applyCrop}>Use this crop</button>
+            </div>
+          </section>
+        </div>
+      )}
     </main>
   );
 }
