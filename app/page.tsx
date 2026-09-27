@@ -122,8 +122,8 @@ export default function AdminPage() {
     event.preventDefault();
     setMessage("");
 
-    if (!form.name.trim() || !form.price) {
-      setMessage("Заполни название и цену.");
+    if (!form.name.trim() || !form.price || !file) {
+      setMessage("Заполни название, цену и выбери фото.");
       return;
     }
 
@@ -282,7 +282,7 @@ export default function AdminPage() {
 
           <form onSubmit={handleCreate} className="dish-form">
             <label className="photo-picker">
-              <input id="dish-photo" type="file" accept="image/*" onChange={handleFileChange} />
+              <input id="dish-photo" type="file" accept="image/jpeg,image/png,image/webp" onChange={handleFileChange} />
               {preview ? (
                 <img src={preview} alt="Dish preview" />
               ) : (
