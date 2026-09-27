@@ -3,8 +3,8 @@
 import { createClient } from "@supabase/supabase-js";
 
 export const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
+  "https://cbgfeygxjcwusvsiokow.supabase.co",
+  "sb_publishable_hhuk9u9Ubhuh4FlPnoYkfA_4eSkmenc",
   {
     auth: {
       persistSession: true,
