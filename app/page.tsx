@@ -126,7 +126,6 @@ export default function AdminPage() {
     const image = new Image();
     image.onload = () => {
       URL.revokeObjectURL(url);
-      setFile(selected);
       setCropImage(image);
       setCropZoom(1);
       setCropOffset({ x: 0, y: 0 });
