@@ -125,11 +125,17 @@ export default function AdminPage() {
     const url = URL.createObjectURL(selected);
     const image = new Image();
     image.onload = () => {
-      URL.revokeObjectURL(url);
+      setFile(selected);
+      setPreview(url);
       setCropImage(image);
       setCropZoom(1);
       setCropOffset({ x: 0, y: 0 });
       setCropOpen(true);
+    };
+    image.onerror = () => {
+      URL.revokeObjectURL(url);
+      setFile(selected);
+      setPreview(URL.createObjectURL(selected));
     };
     image.src = url;
   }
